@@ -2,9 +2,13 @@ package srcCode;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Random;
 
 // TODO: import GlobalConstants
@@ -41,9 +45,21 @@ public class FileCreator {
 
 		// TODO: Write initial meta data to file "metaDataFile".
 
+		// Add current timestamp
+		ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(metaDataFile));
+		Date date= new Date();
+		oos.writeLong(date.getTime());
+		
+		// Add empty HashMap (no neighbors yet)
+		HashMap<Integer, Integer> neighbors = new HashMap<Integer, Integer>();
+		oos.writeObject(neighbors);
+		
+		oos.close();
+
 	}
 
 	public static void main(String[] args) {
+	
 		if (args.length != 2) {
 			usage();
 			System.exit(-1);
