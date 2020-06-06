@@ -1,10 +1,14 @@
 package srcCode;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Random;
 
 // TODO: import GlobalConstants
@@ -33,6 +37,32 @@ public class FileShuffler {
 		File metaDataFile = new File(file.getCanonicalPath() + File.separator + GlobalConstants.MetaDataFileSuffix);
 
 		// TODO: File has been changed. --> Change meta-data of this file.
+		
+		// Read previous timestamp and discard it
+		ObjectInputStream ois = new ObjectInputStream(new FileInputStream(metaDataFile));
+		ois.readLong();
+		
+		// Read neighbors
+		HashMap<String, Integer> neighbors = null;
+		try {
+			neighbors = (HashMap<String, Integer>) ois.readObject();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		// Update Modified Bit for all neighbors
+		neighbors.replaceAll((key, oldValue) -> 1);
+		
+		// Update timestamp
+		long timestamp = (new Date()).getTime();
+
+		// Write updated metadata back to file
+		ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(metaDataFile));
+		oos.writeLong(timestamp);
+		oos.writeObject(neighbors);
+
+		ois.close();
+		oos.close();
 
 	}
 
