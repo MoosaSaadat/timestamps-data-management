@@ -2,7 +2,6 @@ package srcCode;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -41,7 +40,8 @@ public class FileCreator {
 	}
 
 	public static void createMetaData(File file) throws IOException {
-		File metaDataFile = new File(file.getCanonicalPath() + File.pathSeparator + GlobalConstants.MetaDataFileSuffix);
+//		File metaDataFile = new File(file.getCanonicalPath() + File.pathSeparator + GlobalConstants.MetaDataFileSuffix);
+		File metaDataFile = new File(file.getCanonicalPath() + GlobalConstants.MetaDataFileSuffix);
 
 		// TODO: Write initial meta data to file "metaDataFile".
 
