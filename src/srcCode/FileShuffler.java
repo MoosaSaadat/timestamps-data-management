@@ -15,7 +15,7 @@ import java.util.Random;
 
 public class FileShuffler {
 	// Change every 10th file
-	public final static float ChangeProbability = 0.1f;
+	public final static float ChangeProbability = 1f;
 
 	private static void usage() {
 		System.out.println("Usage:");
@@ -34,7 +34,7 @@ public class FileShuffler {
 	}
 
 	private static void changeMetaData(File file) throws IOException {
-		File metaDataFile = new File(file.getCanonicalPath() + File.separator + GlobalConstants.MetaDataFileSuffix);
+		File metaDataFile = new File(file.getCanonicalPath() + GlobalConstants.MetaDataFileSuffix);
 
 		// TODO: File has been changed. --> Change meta-data of this file.
 		
@@ -56,7 +56,7 @@ public class FileShuffler {
 		// Update timestamp
 		long timestamp = (new Date()).getTime();
 
-		// Write updated metadata back to file
+		// Write new metadata back to file
 		ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(metaDataFile));
 		oos.writeLong(timestamp);
 		oos.writeObject(neighbors);
