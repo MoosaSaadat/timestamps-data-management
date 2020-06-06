@@ -51,7 +51,7 @@ public class FileCreator {
 		oos.writeLong(date.getTime());
 		
 		// Add empty HashMap (no neighbors yet)
-		HashMap<Integer, Integer> neighbors = new HashMap<Integer, Integer>();
+		HashMap<String, Integer> neighbors = new HashMap<String, Integer>();
 		oos.writeObject(neighbors);
 		
 		oos.close();
