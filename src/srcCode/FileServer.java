@@ -5,12 +5,16 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 
 public class FileServer extends Thread {
 	private class RequestHandler extends Thread {
@@ -22,8 +26,35 @@ public class FileServer extends Thread {
 			this.socket = socket;
 		}
 		
-		private void resetModificationBit(File file, String clientID) {
+		private void resetModificationBit(String fileName, String clientID) throws IOException {
+
 			// TODO: Clear the modification bit of this file.
+			
+			File metaDataFile = new File(rootDir.getCanonicalFile() + File.separator + fileName);
+			
+			// Read previous timestamp
+			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(metaDataFile));
+			
+			// Read timestamp and neighbors
+			long timestamp = ois.readLong();
+			HashMap<String, Integer> neighbors = null;
+			try {
+				neighbors = (HashMap<String, Integer>) ois.readObject();
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+
+			// Reset Modified Bit for the given clientID
+			neighbors.put(clientID, 0);
+			neighbors.replaceAll((key, oldValue) -> 1);
+			
+			// Write new metadata back to file
+			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(metaDataFile));
+			oos.writeLong(timestamp);
+			oos.writeObject(neighbors);
+
+			ois.close();
+			oos.close();
 			
 		}
 		
@@ -46,7 +77,7 @@ public class FileServer extends Thread {
 					os.write(buffer);
 				}
 				
-				resetModificationBit(file, clientID);
+				resetModificationBit(fileName, clientID);
 				
 				fis.close();
 				os.close();
