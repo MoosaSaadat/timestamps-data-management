@@ -15,7 +15,7 @@ import java.util.Random;
 
 public class FileShuffler {
 	// Change every 10th file
-	public final static float ChangeProbability = 1f;
+	public final static float ChangeProbability = 0.1f;
 
 	private static void usage() {
 		System.out.println("Usage:");
