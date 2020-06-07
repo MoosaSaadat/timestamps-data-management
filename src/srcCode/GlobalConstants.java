@@ -7,4 +7,7 @@ public class GlobalConstants {
 
 	public static final int FileNameSize = 8;
 	public static final int FileSize = 1024;
+	
+	// End of data sharing
+	public static final String endOfSharing = "DONE!";
 }

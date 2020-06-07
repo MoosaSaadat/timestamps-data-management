@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 
 // TODO: import GlobalConstants
 
@@ -19,6 +20,7 @@ public class SyncClient {
 	private String clientId;
 	
 	public SyncClient(String clientId, File rootDir, String serverHostName, int fileServerPort, int metaDataServerPort) {
+		this.clientId = clientId;
 		this.rootDir = rootDir;
 		this.serverHostName = serverHostName;
 		this.fileServerPort = fileServerPort;
@@ -33,8 +35,25 @@ public class SyncClient {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		
 		printer.println(clientId);
-		
+		printer.flush();
+		System.out.println("Sent " + clientId + " to " + serverHostName + ", " + metaDataServerPort);
 		// TODO: Retrieve meta data via reader object.
+		
+		ArrayList<String> files = new ArrayList<String>();
+		ArrayList<Long> timestamps = new ArrayList<Long>();
+		
+		String fileName = reader.readLine();
+		while (!fileName.equals(GlobalConstants.endOfSharing)) {
+			String timestampStr = reader.readLine();
+			System.out.println("Receiving file: " + fileName + " " + timestampStr);
+			files.add(fileName);
+			timestamps.add(Long.parseLong(timestampStr));
+			fileName = reader.readLine();
+		}
+		
+		System.out.println("Done! Closing Socket.");
+		
+		socket.close();
 		
 	}
 	
