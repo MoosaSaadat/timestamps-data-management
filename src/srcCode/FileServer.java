@@ -72,12 +72,14 @@ public class FileServer extends Thread {
 
 				InputStream fis = new BufferedInputStream(new FileInputStream(file));
 
+				System.out.println("Sending file: " + fileName + " ...");
 				while (fis.read(buffer) != -1) {
 					os.write(buffer);
 				}
 				os.flush();
 
 				resetModificationBit(fileName, clientID);
+				System.out.println("Sent!");
 
 				fis.close();
 				os.close();

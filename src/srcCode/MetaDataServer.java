@@ -76,9 +76,7 @@ public class MetaDataServer extends Thread {
 
 					// Send filename and timestamp if it has been modified
 					if (modificationBit == 1) {
-						System.out.println(
-								"Modified file: " + file.getName().replace(GlobalConstants.MetaDataFileSuffix, "") + " "
-										+ modificationTimestamp);
+						System.out.println("Modified file: " + file.getName() + " TimeStamp: " + modificationTimestamp);
 						printer.println(file.getName().replace(GlobalConstants.MetaDataFileSuffix, ""));
 						printer.println(modificationTimestamp);
 						printer.flush();

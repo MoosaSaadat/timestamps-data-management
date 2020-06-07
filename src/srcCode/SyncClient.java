@@ -3,15 +3,19 @@ package srcCode;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 // TODO: import GlobalConstants
 
@@ -22,6 +26,7 @@ public class SyncClient {
 	private int fileServerPort;
 	private int metaDataServerPort;
 	private String clientId;
+	private String serverId;
 
 	// Files to be received
 	ArrayList<String> files;
@@ -36,6 +41,7 @@ public class SyncClient {
 		this.metaDataServerPort = metaDataServerPort;
 		this.files = new ArrayList<String>();
 		this.timestamps = new ArrayList<Long>();
+		this.serverId = serverHostName + ":" + fileServerPort + File.pathSeparator + metaDataServerPort;
 	}
 
 	private void getMetaData() throws UnknownHostException, IOException {
@@ -54,16 +60,72 @@ public class SyncClient {
 		String fileName = reader.readLine();
 		while (!fileName.equals(GlobalConstants.endOfSharing)) {
 			String timestampStr = reader.readLine();
-			System.out.println("Modified file: " + fileName + " " + timestampStr);
+			System.out.println("Modified file: " + fileName + " TimeStamp: " + timestampStr);
 			files.add(fileName);
 			timestamps.add(Long.parseLong(timestampStr));
 			fileName = reader.readLine();
 		}
-
 		System.out.println("Done!");
 
 		socket.close();
 
+	}
+
+	private void updateMetaData() throws IOException {
+
+		// Return if there are no new/updated files
+		if (files.size() == 0)
+			return;
+
+		for (int i = 0; i < files.size(); i++) {
+			File metaDataFile = new File(
+					rootDir.getCanonicalPath() + File.separator + files.get(i) + GlobalConstants.MetaDataFileSuffix);
+			ObjectOutputStream oos = null;
+
+			if (metaDataFile.exists()) {
+				// File Update Received
+				System.out.println("File exists: " + metaDataFile.getCanonicalPath());
+				// Old Timestamp
+				ObjectInputStream ois = new ObjectInputStream(new FileInputStream(metaDataFile));
+				long oldTimestamp = ois.readLong();
+				long newTimestamp = timestamps.get(i);
+				// Order Updates
+				if (newTimestamp > oldTimestamp) {
+					System.out.println("New update received");
+					// Read neighbors
+					HashMap<String, Integer> neighbors = null;
+					try {
+						neighbors = (HashMap<String, Integer>) ois.readObject();
+					} catch (ClassNotFoundException e) {
+						e.printStackTrace();
+					}
+					neighbors.put(serverId, 0);
+					oos = new ObjectOutputStream(new FileOutputStream(metaDataFile));
+					oos.writeLong(newTimestamp);
+					oos.writeObject(neighbors);
+					oos.close();
+				} else if (newTimestamp == oldTimestamp) {
+					System.out.println("Conflict");
+					files.remove(i);
+					timestamps.remove(i);
+					i--;
+				} else {
+					System.out.println("Old file. DISCARDED!");
+					files.remove(i);
+					timestamps.remove(i);
+					i--;
+				}
+				ois.close();
+			} else {
+				// New File Received -> Create a new metadata file and store info in it
+				oos = new ObjectOutputStream(new FileOutputStream(metaDataFile));
+				oos.writeLong(timestamps.get(i));
+				HashMap<String, Integer> neighbors = new HashMap<String, Integer>();
+				neighbors.put(serverId, 0);
+				oos.writeObject(neighbors);
+				oos.close();
+			}
+		}
 	}
 
 	private void syncFiles() throws UnknownHostException, IOException {
@@ -95,7 +157,7 @@ public class SyncClient {
 				writer.write(buffer);
 			}
 			System.out.println("Created file at " + file.getAbsoluteFile());
-			
+
 			socket.close();
 			writer.close();
 
@@ -105,6 +167,7 @@ public class SyncClient {
 
 	public void sync() throws UnknownHostException, IOException {
 		getMetaData();
+		updateMetaData();
 		syncFiles();
 	}
 
