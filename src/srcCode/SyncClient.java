@@ -105,10 +105,16 @@ public class SyncClient {
 					oos.writeObject(neighbors);
 					oos.close();
 				} else if (newTimestamp == oldTimestamp) {
-					System.out.println("Conflict");
-					files.remove(i);
-					timestamps.remove(i);
-					i--;
+					System.out.print("Conflict: ");
+					if (clientId.compareTo(serverId) > 0) {
+						System.out.println(clientId + " > " + serverId + " -> Get new File");
+					}
+					else {
+						System.out.println(clientId + " < " + serverId + " -> No new File");
+						files.remove(i);
+						timestamps.remove(i);
+						i--;
+					}
 				} else {
 					System.out.println("Old file. DISCARDED!");
 					files.remove(i);
