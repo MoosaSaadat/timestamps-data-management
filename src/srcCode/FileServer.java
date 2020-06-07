@@ -45,7 +45,6 @@ public class FileServer extends Thread {
 
 			// Reset Modified Bit for the given clientID
 			neighbors.put(clientID, 0);
-			neighbors.replaceAll((key, oldValue) -> 1);
 
 			// Write new metadata back to file
 			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(metaDataFile));
