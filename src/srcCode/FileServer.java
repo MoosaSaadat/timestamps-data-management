@@ -18,23 +18,22 @@ import java.util.HashMap;
 
 public class FileServer extends Thread {
 	private class RequestHandler extends Thread {
-		public final static int BufferSize = 1024;
-		
 		private Socket socket;
-		
+
 		public RequestHandler(Socket socket) {
 			this.socket = socket;
 		}
-		
+
 		private void resetModificationBit(String fileName, String clientID) throws IOException {
 
 			// TODO: Clear the modification bit of this file.
-			
-			File metaDataFile = new File(rootDir.getCanonicalFile() + File.separator + fileName);
-			
+
+			File metaDataFile = new File(
+					rootDir.getCanonicalFile() + File.separator + fileName + GlobalConstants.MetaDataFileSuffix);
+
 			// Read previous timestamp
 			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(metaDataFile));
-			
+
 			// Read timestamp and neighbors
 			long timestamp = ois.readLong();
 			HashMap<String, Integer> neighbors = null;
@@ -47,7 +46,7 @@ public class FileServer extends Thread {
 			// Reset Modified Bit for the given clientID
 			neighbors.put(clientID, 0);
 			neighbors.replaceAll((key, oldValue) -> 1);
-			
+
 			// Write new metadata back to file
 			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(metaDataFile));
 			oos.writeLong(timestamp);
@@ -55,30 +54,31 @@ public class FileServer extends Thread {
 
 			ois.close();
 			oos.close();
-			
+
 		}
-		
+
 		@Override
 		public void run() {
-			byte[] buffer = new byte[BufferSize];
-			
+			byte[] buffer = new byte[GlobalConstants.FileSize];
+
 			try {
 				BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 				String clientID = reader.readLine();
 				String fileName = reader.readLine();
-				
+
 				File file = new File(rootDir.getCanonicalFile() + File.separator + fileName);
-				
+
 				OutputStream os = new BufferedOutputStream(socket.getOutputStream());
-				
+
 				InputStream fis = new BufferedInputStream(new FileInputStream(file));
-				
+
 				while (fis.read(buffer) != -1) {
 					os.write(buffer);
 				}
-				
+				os.flush();
+
 				resetModificationBit(fileName, clientID);
-				
+
 				fis.close();
 				os.close();
 				reader.close();
@@ -87,10 +87,10 @@ public class FileServer extends Thread {
 			}
 		}
 	}
-	
+
 	private int port;
 	private File rootDir;
-	
+
 	public FileServer(int port, File rootDir) {
 		this.port = port;
 		this.rootDir = rootDir;
@@ -98,6 +98,7 @@ public class FileServer extends Thread {
 
 	@Override
 	public void run() {
+		System.out.println("FileServer Started!");
 		try {
 			ServerSocket serverSocket = new ServerSocket(port);
 			while (true) {
@@ -107,6 +108,6 @@ public class FileServer extends Thread {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-		}	
+		}
 	}
 }

@@ -13,8 +13,6 @@ import java.util.HashMap;
 
 public class MetaDataServer extends Thread {
 	private class RequestHandler extends Thread {
-		public final static int BufferSize = 1024;
-
 		private Socket socket;
 
 		public RequestHandler(Socket socket) {
@@ -79,7 +77,7 @@ public class MetaDataServer extends Thread {
 					// Send filename and timestamp if it has been modified
 					if (modificationBit == 1) {
 						System.out.println(
-								"Sending file: " + file.getName().replace(GlobalConstants.MetaDataFileSuffix, "") + " "
+								"Modified file: " + file.getName().replace(GlobalConstants.MetaDataFileSuffix, "") + " "
 										+ modificationTimestamp);
 						printer.println(file.getName().replace(GlobalConstants.MetaDataFileSuffix, ""));
 						printer.println(modificationTimestamp);
@@ -121,6 +119,7 @@ public class MetaDataServer extends Thread {
 
 	@Override
 	public void run() {
+		System.out.println("MetaDataServer Started!");
 		try {
 			ServerSocket serverSocket = new ServerSocket(port);
 			while (true) {
