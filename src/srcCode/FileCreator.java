@@ -1,8 +1,11 @@
 package srcCode;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.Calendar;
@@ -57,6 +60,54 @@ public class FileCreator {
 		oos.close();
 
 	}
+	
+	public static void displayFile(File file) throws IOException {
+		System.out.println("====================");
+		System.out.println(file.getAbsolutePath());
+		System.out.println("====================");
+		InputStream is = null;
+		try {
+			is = new FileInputStream(file);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		for(byte b: is.readAllBytes()) {
+			System.out.print(b + ", ");
+		}
+		System.out.println();
+		System.out.println("====================");
+		System.out.println();
+	}
+	
+	public static void compareFiles(File fileOne, File fileTwo) {
+		
+		InputStream isOne = null;
+		InputStream isTwo = null;
+		try {
+			isOne = new FileInputStream(fileOne);
+			isTwo = new FileInputStream(fileTwo);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		byte[] fileOneContent = null;
+		byte[] fileTwoContent = null;
+		try {
+			fileOneContent = isOne.readAllBytes();
+			fileTwoContent = isTwo.readAllBytes();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		if (fileOneContent.equals(fileTwoContent)) {
+			System.out.println("Files are equal");
+		}
+		else {
+			System.out.println("Files are not equal");
+		}
+		System.out.println();
+	}
 
 	public static void main(String[] args) {
 	
@@ -93,6 +144,7 @@ public class FileCreator {
 			try {
 				file = createFile(rootDir);
 				createMetaData(file);
+				displayFile(file);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
