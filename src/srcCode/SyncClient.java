@@ -2,16 +2,21 @@ package srcCode;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 // TODO: import GlobalConstants
 
@@ -25,7 +30,7 @@ public class SyncClient {
 
 	// Files to be received
 	ArrayList<String> files;
-	ArrayList<Long> timestamps;
+	ArrayList<byte[]> metaInfos;
 
 	public SyncClient(String clientId, File rootDir, String serverHostName, int fileServerPort,
 			int metaDataServerPort) {
@@ -35,7 +40,63 @@ public class SyncClient {
 		this.fileServerPort = fileServerPort;
 		this.metaDataServerPort = metaDataServerPort;
 		this.files = new ArrayList<String>();
-		this.timestamps = new ArrayList<Long>();
+		this.metaInfos = new ArrayList<byte[]>();
+	}
+	
+	private void updateMetaData() throws IOException {
+		
+		System.out.println("Analysing meta information");
+		if (files.size() == 0)
+			return;
+		
+		for (int i = 0; i < files.size(); i++) {
+
+			File file = new File(rootDir.getCanonicalPath() + File.separator + files.get(i) + GlobalConstants.MetaDataFileSuffix);
+			if (file.exists()) {
+				System.out.println("Updating File");
+				// Read previous timestamp
+				ObjectInputStream old_ois = new ObjectInputStream(new FileInputStream(file));
+				ObjectInputStream new_ois = new ObjectInputStream(new ByteArrayInputStream(metaInfos.get(i)));
+				long oldTimestamp = old_ois.readLong();
+				long newTimestamp = new_ois.readLong();
+
+				// Read neighbors
+				HashMap<String, Integer> old_neighbors = null;
+				HashMap<String, Integer> new_neighbors = null;
+				try {
+					old_neighbors = (HashMap<String, Integer>) old_ois.readObject();
+					new_neighbors = (HashMap<String, Integer>) old_ois.readObject();
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+				
+				// Check Order
+				ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file));
+				if (newTimestamp > oldTimestamp) {
+					System.out.println("Update is latest");
+					oos.writeLong(newTimestamp);
+					old_neighbors.putAll(new_neighbors);
+					old_neighbors.remove(clientId);
+					oos.writeObject(old_neighbors);
+				}
+				else if (newTimestamp == oldTimestamp) {
+					System.out.println("Conflict!");
+					oos.writeLong(oldTimestamp);
+					oos.writeObject(old_neighbors);
+				}
+				
+				old_ois.close();
+				new_ois.close();
+				oos.close();
+			}
+			else {
+				System.out.println("Saving File");
+				OutputStream os = new FileOutputStream(file);
+				os.write(metaInfos.get(i));
+				os.close();
+			}
+			System.out.println("Created file at " + file.getAbsoluteFile());
+		}					
 	}
 
 	private void getMetaData() throws UnknownHostException, IOException {
@@ -53,15 +114,14 @@ public class SyncClient {
 
 		String fileName = reader.readLine();
 		while (!fileName.equals(GlobalConstants.endOfSharing)) {
-			String timestampStr = reader.readLine();
-			System.out.println("Modified file: " + fileName + " " + timestampStr);
-			files.add(fileName);
-			timestamps.add(Long.parseLong(timestampStr));
+			String metaData = reader.readLine();
+			System.out.println("Modified file: " + fileName);
+			files.add(fileName.replace(GlobalConstants.MetaDataFileSuffix, ""));
+			metaInfos.add(metaData.getBytes());
 			fileName = reader.readLine();
 		}
 
 		System.out.println("Done!");
-
 		socket.close();
 
 	}
@@ -105,6 +165,7 @@ public class SyncClient {
 
 	public void sync() throws UnknownHostException, IOException {
 		getMetaData();
+		updateMetaData();
 		syncFiles();
 	}
 

@@ -1,14 +1,17 @@
 package srcCode;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class MetaDataServer extends Thread {
@@ -53,6 +56,24 @@ public class MetaDataServer extends Thread {
 
 		}
 
+		private ArrayList<Byte> getMetaData(File file) throws IOException {
+
+			// Holds complete data
+			ArrayList<Byte> metaData = new ArrayList<Byte>();
+
+			InputStream fis = new BufferedInputStream(new FileInputStream(file));
+
+			int nextByte = fis.read();
+			while (nextByte != -1) {
+				metaData.add((byte) nextByte);
+				nextByte = fis.read();
+			}
+			fis.close();
+
+			return metaData;
+
+		}
+
 		private void sendMetaData(PrintWriter printer, String clientID) {
 			// TODO: Send meta data of local files to client using "modified bit" approach.
 			// That is, send meta data of all files that were modified since
@@ -65,22 +86,33 @@ public class MetaDataServer extends Thread {
 				File file = files[i];
 				if (file.getPath().endsWith(GlobalConstants.MetaDataFileSuffix)) {
 					int modificationBit = 0;
-					long modificationTimestamp = 0;
 					try {
 						modificationBit = getModificationBit(file, clientID);
-						if (modificationBit == 1)
-							modificationTimestamp = getTimestamp(file, clientID);
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
 
 					// Send filename and timestamp if it has been modified
+//					if (modificationBit == 1) {
+//						System.out.println(
+//								"Modified file: " + file.getName().replace(GlobalConstants.MetaDataFileSuffix, "") + " "
+//										+ modificationTimestamp);
+//						printer.println(file.getName().replace(GlobalConstants.MetaDataFileSuffix, ""));
+//						printer.println(modificationTimestamp);
+//						printer.flush();
+//					}
+
+					// Send metadata
 					if (modificationBit == 1) {
-						System.out.println(
-								"Modified file: " + file.getName().replace(GlobalConstants.MetaDataFileSuffix, "") + " "
-										+ modificationTimestamp);
-						printer.println(file.getName().replace(GlobalConstants.MetaDataFileSuffix, ""));
-						printer.println(modificationTimestamp);
+						System.out.println("Modified file: " + file.getName());
+						ArrayList<Byte> metaData = null;
+						try {
+							metaData = getMetaData(file);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						printer.println(file.getName());
+						printer.println(metaData);
 						printer.flush();
 					}
 				}
