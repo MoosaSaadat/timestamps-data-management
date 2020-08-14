@@ -25,10 +25,10 @@ Two processes need to be run manually for each node: *SyncServer* and *SyncClien
     - It will start server with two threads on above ports
 4. Run `SyncClient.java` with the following command line arguments:
     - `localhost:6000;6001 node_data1 localhost 5000 5001`
-    - It will connect with server and send clientID `localhost:6000;6001`\*
+    - It will connect with server and send clientID `localhost:6000;6001` **\***
 5. All the files in `node_data` will be replicated in `node_data1` (sync success)
 
-\*`clientID` follows the following pattern:
+**\*** `clientID` follows the following pattern:
 
 ```
 nodeHostName:fileServerPort;metaDataServerPort
