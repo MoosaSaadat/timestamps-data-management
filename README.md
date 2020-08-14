@@ -1,6 +1,13 @@
-# Distributed System Data Management
+# Data Management in IoT
 
-## Assignment 2
+### Description
+This is a console based application for simulating Data Management in mobile nodes. Nodes can be added or removed from the network. Connections among different nodes can be specified following the instructions given below. Following protocols are used in this project.
+
+## Protocols
+- **Recording Updates:** State-based model
+- **Sending Updates:** Modified-Bit protocol
+- **Ordering Updates:** Timestamps
+- **Conflict Management:** Latest update wins
 
 ### How to run?
 1. Create 2 directories in DistributedDataManagement folder (same folder as of src):
