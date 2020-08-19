@@ -1,3 +1,7 @@
+![build-passing](https://img.shields.io/badge/Build-passing-success?style=flat-square)
+[![made-with-java](https://img.shields.io/badge/Made%20with-Java-informational?style=flat-square)](https://www.python.org/)
+
+
 # Data Management in IoT
 
 ### Description
